@@ -9,8 +9,9 @@ class SmartyTextbox
     private $smartyVariable;
     private $smarty;
     private $required;
+    private $style;
 
-    public function __construct($formKey, $type, $id, $smartyVariable, $attributes, $required, &$smarty)
+    public function __construct($formKey, $type, $id, $smartyVariable, $attributes, $required, &$smarty, $style = '')
     {
         $this->name = $this->GetName($formKey);
         $this->type = empty($type) ? 'text' : $type;
@@ -19,15 +20,17 @@ class SmartyTextbox
         $this->smartyVariable = $smartyVariable;
         $this->required = $required;
         $this->smarty = $smarty;
+        $this->style = $style;
     }
 
     public function Html()
     {
-        $value = $this->GetValue();
-        $style = empty($this->style) ? '' : " style=\"{$this->style}\"";
-        $required = $this->required ? ' required="required" ' : '';
+        $value = htmlspecialchars($this->GetValue(), ENT_QUOTES, 'UTF-8');
+        $required = $this->required ? ' required="required"' : '';
+        $style = !empty($this->style) ? ' style="' . htmlspecialchars($this->style, ENT_QUOTES, 'UTF-8') . '"' : '';
+        $attributes = !empty($this->attributes) ? ' ' . htmlspecialchars($this->attributes, ENT_QUOTES, 'UTF-8') : '';
 
-        return "<input type=\"{$this->GetInputType()}\" name=\"{$this->name}\" id=\"{$this->id}\" value=\"$value\"{$required} $this->attributes />";
+        return "<input type=\"{$this->GetInputType()}\" name=\"{$this->name}\" id=\"{$this->id}\" value=\"$value\"{$required}{$style}{$attributes} />";
     }
 
     protected function GetInputType()
@@ -48,30 +51,26 @@ class SmartyTextbox
             $value = $this->GetTemplateValue();
         }
 
-        if (!empty($value)) {
-            return trim($value);
-        }
-
-        return '';
+        return !empty($value) ? trim($value) : '';
     }
 
     private function GetPostedValue()
     {
-        return ServiceLocator::GetServer()->GetForm($this->name);
+        if (class_exists('ServiceLocator') && method_exists(ServiceLocator::GetServer(), 'GetForm')) {
+            return ServiceLocator::GetServer()->GetForm($this->name);
+        }
+        return null;
     }
 
     private function GetTemplateValue()
     {
-        $value = '';
-
-        if (!empty($this->smartyVariable)) {
+        if ($this->smarty instanceof Smarty && !empty($this->smartyVariable)) {
             $var = $this->smarty->getTemplateVars($this->smartyVariable);
             if (!empty($var)) {
-                $value = $var;
+                return trim($var);
             }
         }
-
-        return $value;
+        return '';
     }
 }
 
