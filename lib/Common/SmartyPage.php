@@ -49,6 +49,7 @@ class SmartyPage extends Smarty
         $this->config_dir = $base . 'configs';
         $this->cache_dir = $base . 'cache';
         $this->plugins_dir = $base . 'vendor/smarty/smarty/libs/plugins';
+        $this->error_reporting = error_reporting() & ~E_USER_DEPRECATED; //Deprecated: Using unregistered static method in a template is deprecated and will be removed in a future release. Use Smarty::registerClass to explicitly register a class for access. Future fix needed!
         //$this->error_reporting = E_ALL & ~E_NOTICE;
         $this->muteUndefinedOrNullWarnings();
 
